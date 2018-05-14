@@ -1,0 +1,37 @@
+{
+    "name": "imagetyperzapi/imagetyperzapi",
+    "type": "library",
+    "description": "ImagetyperzAPI PHP is a super easy to use bypass captcha API wrapper for imagetyperz.com captcha service",
+    "keywords": [
+        "captcha",
+        "bypasscaptcha",
+        "decaptcher",
+        "decaptcha",
+        "2captcha",
+        "deathbycaptcha",
+        "anticaptcha",
+        "bypass recaptcha v2",
+        "bypass no captcha recaptcha",
+        "bypass invisible recaptcha",
+        "captcha services for recaptcha v2",
+        "recaptcha v2 captcha solver",
+        "google recaptcha solver",
+        "recaptcha solver python",
+        "recaptcha bypass script"
+    ],
+    "homepage": "https://github.com/imagetyperz-api/imagetyperz-api-php",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Imagetyperz Dev",
+            "email": "imagetyperz@gmail.com",
+            "homepage": "http://imagetyperz.com",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.0",
+        "ext-curl": "*"
+    }
+}
+
