@@ -5,12 +5,15 @@ define('RECAPTCHA_SUBMIT_ENDPOINT', 'http://captchatypers.com/captchaapi/UploadR
 define('RECAPTCHA_RETRIEVE_ENDPOINT', 'http://captchatypers.com/captchaapi/GetRecaptchaText.ashx');
 define('BALANCE_ENDPOINT', 'http://captchatypers.com/Forms/RequestBalance.ashx');
 define('BAD_IMAGE_ENDPOINT', 'http://captchatypers.com/Forms/SetBadImage.ashx');
+define('PROXY_CHECK_ENDPOINT', 'http://captchatypers.com/captchaAPI/GetReCaptchaTextJSON.ashx');
+
 define('CAPTCHA_ENDPOINT_CONTENT_TOKEN', 'http://captchatypers.com/Forms/UploadFileAndGetTextNEWToken.ashx');
 define('CAPTCHA_ENDPOINT_URL_TOKEN', 'http://captchatypers.com/Forms/FileUploadAndGetTextCaptchaURLToken.ashx');
 define('RECAPTCHA_SUBMIT_ENDPOINT_TOKEN', 'http://captchatypers.com/captchaapi/UploadRecaptchaToken.ashx');
 define('RECAPTCHA_RETRIEVE_ENDPOINT_TOKEN', 'http://captchatypers.com/captchaapi/GetRecaptchaTextToken.ashx');
 define('BALANCE_ENDPOINT_TOKEN', 'http://captchatypers.com/Forms/RequestBalanceToken.ashx');
 define('BAD_IMAGE_ENDPOINT_TOKEN', 'http://captchatypers.com/Forms/SetBadImageToken.ashx');
+define('PROXY_CHECK_ENDPOINT_TOKEN', 'http://captchatypers.com/captchaAPI/GetReCaptchaTextTokenJSON.ashx');
 
 define('USER_AGENT', 'phpAPI1.0');
 
@@ -326,6 +329,51 @@ class ImagetyperzAPI {
         }
 
         return $response;     // return response
+    }
+    
+	// Tells if proxy was used or not
+    function was_proxy_used($captcha_id) {
+		// set data array
+		$data = array(
+			"action" => "GETTEXT",
+			"captchaid" => $captcha_id,
+		);
+
+		if (!empty($this->_username)) {
+			$data["username"] = $this->_username;
+			$data["password"] = $this->_password;
+			$url = PROXY_CHECK_ENDPOINT;
+		} else {
+			$data['token'] = $this->_access_token;
+			$url = PROXY_CHECK_ENDPOINT_TOKEN;
+		}
+
+		// do request
+		$response = Utils::post($url, $data, USER_AGENT, $this->_timeout);
+		$js = json_decode($response, TRUE)[0];		// decode JSON
+		
+		if(array_key_exists('Error', $js)){
+			$response_err = $js['Error'];
+			$this->_error = $response_err;
+            throw new Exception($response_err);
+		}
+		else if(empty($js['Result'])){
+			$response_err = 'captcha not completed yet';
+			$this->_error = $response_err;
+            throw new Exception($response_err);
+		}
+		else if(empty($js['Proxy_client'])){
+			return 'no, reason: proxy was no sent with recaptcha submission request';
+		}
+		else if(!empty($js['Proxy_reason'])){
+			return "no, reason: " . $js['Proxy_reason'];
+		}
+		else if(sizeof(explode(':', $js['Proxy_client'])) >= 2 && $js['Proxy_client'] === $js['Proxy_worker'])
+		{
+			return "yes, used proxy: " . $js['Proxy_worker'];
+		}
+		
+		return 'no, reason: unknown';
     }
 
     // Get last captcha text

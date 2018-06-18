@@ -103,6 +103,15 @@ Proxy with authentication is also supported
 $captcha_id = $i->submit_recaptcha($page_url, $sitekey, "12.34.45.78:1234:user:pass");
 ```
 
+**Get details of proxy for recaptcha**
+
+In case you submitted the recaptcha with proxy, you can check the status of the proxy, if it was used or not,
+and if not, what the reason was with the following:
+
+``` php
+echo $i->was_proxy_used($captcha_id);
+```
+
 **Set captcha bad**
 
 When a captcha was solved wrong by our workers, you can notify the server with it's ID,

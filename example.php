@@ -23,7 +23,7 @@ function test_api() {
     echo 'Solving captcha ...';
     $captcha_text = $i->solve_captcha('captcha.jpg');
     echo "Captcha text: $captcha_text";
-    die('here');
+    
     // solve recaptcha
     // --------------------------------------------------------------------
     // check: http://www.imagetyperz.com/Forms/recaptchaapi.aspx on how to get page_url and googlekey
@@ -31,9 +31,8 @@ function test_api() {
     $sitekey = 'your_sitekey_here';
     echo 'Submitting recaptcha...';
     $captcha_id = $i->submit_recaptcha($page_url, $sitekey);
-
     echo 'Waiting for recaptcha to be completed ...';
-    //echo 'Waiting for recaptcha to be solved ...';
+    
     // check every 10 seconds if recaptcha was solved
     while ($i->in_progress($captcha_id))
         sleep(10);
@@ -48,6 +47,7 @@ function test_api() {
     // submit recaptcha with proxy from which it will be solved
     // $captcha_id = $i->submit_recaptcha($page_url, $sitekey, "12.34.45.78:1234");
     // $captcha_id = $i->submit_recaptcha($page_url, $sitekey, "12.34.45.78:1234:user:pass");	// proxy authentication
+    // echo $i->was_proxy_used($captcha_id);			// tells if proxy submitted (if any) was used or not, and if not used, reason
     // echo $i->set_captcha_bad($captcha_id);       // set captcha bad
     // getters
     // echo $i->captcha_id();              // get last captcha id
