@@ -9,7 +9,7 @@ require('lib/imagetyperzapi.php');      // load API library
 // Test method
 
 function test_api() {
-    $access_token = 'your_access_token_here';
+    $access_token = 'access_token_here';
     $i = new ImagetyperzAPI($access_token);      // init API lib obj
     //legacy (will get deprecated at some point)
     //$i->set_user_password('your_username', 'your_password');
@@ -19,18 +19,26 @@ function test_api() {
     $balance = $i->account_balance();       // get balance
     echo "Balance: $balance";
 
-    // works 
     echo 'Solving captcha ...';
     $captcha_text = $i->solve_captcha('captcha.jpg');
     echo "Captcha text: $captcha_text";
-    
+
     // solve recaptcha
     // --------------------------------------------------------------------
-    // check: http://www.imagetyperz.com/Forms/recaptchaapi.aspx on how to get page_url and googlekey
-    $page_url = 'your_page_url_here';
-    $sitekey = 'your_sitekey_here';
+    // check: https://github.com/imagetyperz-api/API-docs#submit-recaptcha for more details
     echo 'Submitting recaptcha...';
-    $captcha_id = $i->submit_recaptcha($page_url, $sitekey);
+    $params = array();
+    $params['page_url'] = 'page_url_here';
+    $params['sitekey'] = 'sitekey_here';
+    // type: 1 - normal recaptcha, 2 - invisible recaptcha, 3 - v3 recaptcha, default: 1
+    //$params['type'] = 3;    // optional
+    //$params['v3_min_score'] = 0.3;          // min score to target when solving v3 - optional
+    //$params['v3_action'] = 'homepage';      // action to use when solving v3 - optional
+    // proxy to use when solving recaptcha, works with auth as well 126.45.34.53:123:user:password
+    //$params['proxy'] = '126.45.34.53:123';  // - optional
+    // user agent to use when resolving recaptcha - optional
+    //$params['user_agent'] = 'Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101 Firefox/60.0';
+    $captcha_id = $i->submit_recaptcha($params);
     echo 'Waiting for recaptcha to be completed ...';
     
     // check every 10 seconds if recaptcha was solved
@@ -45,9 +53,9 @@ function test_api() {
     // $i = new ImagetypersAPI($access_token, 123);      // use affiliateid
     // $i = new ImagetypersAPI($access_token, 123, 60);   // affiliate id and 60 seconds timeout
     // submit recaptcha with proxy from which it will be solved
-    // $captcha_id = $i->submit_recaptcha($page_url, $sitekey, "12.34.45.78:1234");
-    // $captcha_id = $i->submit_recaptcha($page_url, $sitekey, "12.34.45.78:1234:user:pass");	// proxy authentication
-    // echo $i->was_proxy_used($captcha_id);			// tells if proxy submitted (if any) was used or not, and if not used, reason
+
+    echo $i->was_proxy_used($captcha_id);			// tells if proxy submitted (if any) was used or not, and if not used, reason
+
     // echo $i->set_captcha_bad($captcha_id);       // set captcha bad
     // getters
     // echo $i->captcha_id();              // get last captcha id

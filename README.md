@@ -54,8 +54,21 @@ $captcha_text = $i->solve_captcha('http://scurt.pro/captcha.jpg');
 For recaptcha submission there are two things that are required.
 - page_url
 - site_key
+- type - can be one of this 3 values: `1` - normal, `2` - invisible, `3` - v3 (it's optional, defaults to `1`)
+- v3_min_score - minimum score to target for v3 recaptcha `- optional`
+- v3_action - action parameter to use for v3 recaptcha `- optional`
+- proxy - proxy to use when solving recaptcha, eg. `12.34.56.78:1234` or `12.34.56.78:1234:user:password` `- optional`
+- user_agent - useragent to use when solve recaptcha `- optional` 
 ``` php
-$captcha_id = $i->submit_recaptcha($page_url, $sitekey);
+$params = array();
+$params['page_url'] = 'page_url_here';
+$params['sitekey'] = 'sitekey_here';
+$params['type'] = 3;    // optional
+$params['v3_min_score'] = 0.3;          // min score to target when solving v3 - optional
+$params['v3_action'] = 'homepage';      // action to use when solving v3 - optional
+$params['proxy'] = '126.45.34.53:123';  // - optional
+$params['user_agent'] = 'Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101 Firefox/60.0'; // optional
+$captcha_id = $i->submit_recaptcha($params);
 ```
 This method returns a captchaID. This ID will be used next, to retrieve the g-response, once workers have 
 completed the captcha. This takes somewhere between 10-80 seconds.
@@ -88,19 +101,6 @@ $i = new ImagetypersAPI($access_token, 123);
 As a 3rd parameter in the constructor, you can specify a timeout for the requests (in seconds)
 ``` php
 $i = new ImagetypersAPI($access_token, 123, 60);
-```
-
-**Submit recaptcha with proxy**
-
-When a proxy is submitted with the recaptcha details, the workers will complete the captcha using
-the provided proxy/IP.
-
-``` php
-$captcha_id = $i->submit_recaptcha($page_url, $sitekey, "12.34.45.78:1234");
-```
-Proxy with authentication is also supported
-``` php
-$captcha_id = $i->submit_recaptcha($page_url, $sitekey, "12.34.45.78:1234:user:pass");
 ```
 
 **Get details of proxy for recaptcha**

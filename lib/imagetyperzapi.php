@@ -189,11 +189,11 @@ class ImagetyperzAPI {
     }
 
     // Submit recaptcha
-    function submit_recaptcha($page_url, $sitekey, $proxy = '') {
+    function submit_recaptcha($d) {
         $data = array(
             "action" => "UPLOADCAPTCHA",
-            "pageurl" => $page_url,
-            "googlekey" => $sitekey,
+            "pageurl" => $d['page_url'],
+            "googlekey" => $d['sitekey'],
         );
 
         if (!empty($this->_username)) {
@@ -211,11 +211,20 @@ class ImagetyperzAPI {
         }
 
         // check for proxy
-        if (isset($proxy)) {
+        if (isset($d['proxy'])) {
             // we have a good proxy here (at least both params supplied)
             // set it to the data/params
-            $data["proxy"] = $proxy;
+            $data["proxy"] = $d['proxy'];
         }
+        // check for user agent
+        if (isset($d['user_agent'])) $data["useragent"] = $d['user_agent'];
+
+        // v3
+        $data['recaptchatype'] = '0';
+        // check for other v3 params
+        if (isset($d['type'])) $data["recaptchatype"] = (string)$d['type'];
+        if (isset($d['v3_action'])) $data["captchaaction"] = $d['v3_action'];
+        if (isset($d['v3_min_score'])) $data["score"] = (string)$d['v3_min_score'];
 
         $response = Utils::post($url, $data, USER_AGENT, $this->_timeout);
         if (strpos($response, 'ERROR:') !== false) {
