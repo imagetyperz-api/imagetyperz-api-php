@@ -43,8 +43,10 @@ $balance = $i->account_balance();
 **Submit image captcha**
 
 ``` php
-$captcha_text = $i->solve_captcha('captcha.jpg');
+// check example for optional_parameters array
+$captcha_text = $i->solve_captcha('captcha.jpg', optional_parameters);
 ```
+
 **Works with URL instead of image file but only if authenticated with token**
 ``` php
 $captcha_text = $i->solve_captcha('http://scurt.pro/captcha.jpg');
@@ -86,6 +88,14 @@ while ($i->in_progress($captcha_id))
 // completed at this point
 $recaptcha_response = $i->retrieve_recaptcha($captcha_id);
 ```
+
+## Capy
+
+This captcha requires a `page_url` and `sitekey` in order to be solved by our system.
+Currently, in order to solve a capy captcha, you'll have to use the reCAPTCHA methods and only add `--capy` at the end of the `page_url`.
+Having that up, our system will pick it up as capy. Once workers have solved it, you'll have to use the reCAPTCHA retrieve endpoint, to get the response.
+
+**E.g** Original page url - `https://mysite.com`, capy page url `https://mysite.com--capy`
 
 ## Other methods/variables
 

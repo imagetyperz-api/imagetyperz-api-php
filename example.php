@@ -20,7 +20,15 @@ function test_api() {
     echo "Balance: $balance";
 
     echo 'Solving captcha ...';
-    $captcha_text = $i->solve_captcha('captcha.jpg');
+    // optional image captcha parameters
+    $optional_parameters = array();
+    // $optional_parameters['iscase'] = 'true';            // case sensitive captcha
+    // $optional_parameters['ismath'] = 'true';            // instructs worker that a math captcha has to be solved
+    // $optional_parameters['isphrase'] = 'true';          // text contains at least one space (phrase)
+    // $optional_parameters['alphanumeric'] = '1';         // 1 - digits only, 2 - letters only
+    // $optional_parameters['minlength'] = '3';            // captcha text length (minimum)
+    // $optional_parameters['maxlength'] = '8';            // captcha text length (maximum)
+    $captcha_text = $i->solve_captcha('captcha.jpg', $optional_parameters);
     echo "Captcha text: $captcha_text";
 
     // solve recaptcha

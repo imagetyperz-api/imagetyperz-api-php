@@ -141,7 +141,7 @@ class ImagetyperzAPI {
     }
 
     // Solve captcha
-    function solve_captcha($captcha_file, $case_sensitive = FALSE) {
+    function solve_captcha($captcha_file, $optional_arguments) {
         $data = array();
         # if username is set, act accordingly
         if (!empty($this->_username)) {
@@ -166,13 +166,12 @@ class ImagetyperzAPI {
             $data['token'] = $this->_access_token;
         }
 
-
         $data["action"] = "UPLOADCAPTCHA";
-        $data["chkCase"] = (int) $case_sensitive;
         $data["file"] = $image_data;
-        if (!empty($this->_affiliate_id)) {
-            $data['affiliateid'] = $this->_affiliate_id;
-        }
+        if (!empty($this->_affiliate_id)) $data['affiliateid'] = $this->_affiliate_id;
+
+        // add optional parameters to request body
+        foreach ($optional_arguments as $key => $value) $data[$key] = $value;
 
         $response = Utils::post($url, $data, USER_AGENT, $this->_timeout);
         // if file is sent as b64, uploading file ... is in response too, remove it
