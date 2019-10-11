@@ -36,7 +36,7 @@ function test_api() {
     // check: https://github.com/imagetyperz-api/API-docs#submit-recaptcha for more details
     echo 'Submitting recaptcha...';
     $params = array();
-    $params['page_url'] = 'page_url_here';
+    $params['page_url'] = 'page_url_here';		// add --capy or --hcaptcha at the end, to submit capy or hCaptcha
     $params['sitekey'] = 'sitekey_here';
     // type: 1 - normal recaptcha, 2 - invisible recaptcha, 3 - v3 recaptcha, default: 1
     //$params['type'] = 3;    // optional
