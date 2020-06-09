@@ -45,7 +45,8 @@ function test_api() {
     // proxy to use when solving recaptcha, works with auth as well 126.45.34.53:123:user:password
     //$params['proxy'] = '126.45.34.53:123';  // - optional
     // user agent to use when resolving recaptcha - optional
-    //$params['user_agent'] = 'Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101 Firefox/60.0';
+    //$params['user_agent'] = 'Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101 Firefox/60.0'; // - optional
+    //$params['data-s'] = 'recaptcha data-s value'; // - optional
     $captcha_id = $i->submit_recaptcha($params);
     echo 'Waiting for recaptcha to be completed ...';
     

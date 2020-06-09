@@ -224,7 +224,7 @@ class ImagetyperzAPI {
         if (isset($d['type'])) $data["recaptchatype"] = (string)$d['type'];
         if (isset($d['v3_action'])) $data["captchaaction"] = $d['v3_action'];
         if (isset($d['v3_min_score'])) $data["score"] = (string)$d['v3_min_score'];
-
+        if (isset($d['data-s'])) $data["data-s"] = (string)$d['data-s']
         $response = Utils::post($url, $data, USER_AGENT, $this->_timeout);
         if (strpos($response, 'ERROR:') !== false) {
             $response_err = trim(explode('ERROR:', $response)[1]);
