@@ -6,6 +6,12 @@ define('RECAPTCHA_RETRIEVE_ENDPOINT', 'http://captchatypers.com/captchaapi/GetRe
 define('BALANCE_ENDPOINT', 'http://captchatypers.com/Forms/RequestBalance.ashx');
 define('BAD_IMAGE_ENDPOINT', 'http://captchatypers.com/Forms/SetBadImage.ashx');
 define('PROXY_CHECK_ENDPOINT', 'http://captchatypers.com/captchaAPI/GetReCaptchaTextJSON.ashx');
+define('GEETEST_SUBMIT_ENDPOINT', 'http://captchatypers.com/captchaapi/UploadGeeTest.ashx');
+define('GEETEST_SUBMIT_ENDPOINT_TOKEN', 'http://captchatypers.com/captchaapi/UploadGeeTestToken.ashx');
+define('RETRIEVE_JSON_ENDPOINT', 'http://captchatypers.com/captchaapi/GetCaptchaResponseJson.ashx');
+define('CAPY_ENDPOINT', 'http://captchatypers.com/captchaapi/UploadCapyCaptchaUser.ashx');
+define('HCAPTCHA_ENDPOINT', 'http://captchatypers.com/captchaapi/UploadHCaptchaUser.ashx');
+define('TIKTOK_ENDPOINT', 'http://captchatypers.com/captchaapi/UploadTikTokCaptchaUser.ashx');
 
 define('CAPTCHA_ENDPOINT_CONTENT_TOKEN', 'http://captchatypers.com/Forms/UploadFileAndGetTextNEWToken.ashx');
 define('CAPTCHA_ENDPOINT_URL_TOKEN', 'http://captchatypers.com/Forms/FileUploadAndGetTextCaptchaURLToken.ashx');
@@ -16,60 +22,6 @@ define('BAD_IMAGE_ENDPOINT_TOKEN', 'http://captchatypers.com/Forms/SetBadImageTo
 define('PROXY_CHECK_ENDPOINT_TOKEN', 'http://captchatypers.com/captchaAPI/GetReCaptchaTextTokenJSON.ashx');
 
 define('USER_AGENT', 'phpAPI1.0');
-
-// Captcha class
-class Captcha {
-
-    private $_captcha_id = '';
-    private $_text = '';
-
-    function __construct($response) {
-        $a = explode('|', $response);       // split response
-        if (sizeof($a) < 2) {                  // check if right length
-            throw new Exception("cannot parse response from server: " . $response);
-        }
-        $this->_captcha_id = $a[0];
-        $this->_text = join('|', array_slice($a, 1, sizeof($a)));
-    }
-
-    // Get captcha ID
-    function captcha_id() {
-        return $this->_captcha_id;
-    }
-
-    // Get captcha text
-    function text() {
-        return $this->_text;
-    }
-
-}
-
-// Recaptcha class
-class Recaptcha {
-
-    private $_captcha_id = '';
-    private $_response = '';
-
-    function __construct($captcha_id) {
-        $this->_captcha_id = $captcha_id;        // set captcha ID on obj
-    }
-
-    // Set response
-    function set_response($response) {
-        $this->_response = $response;
-    }
-
-    // Get captcha ID
-    function captcha_id() {
-        return $this->_captcha_id;
-    }
-
-    // Get response
-    function response() {
-        return $this->_response;
-    }
-
-}
 
 // Utils class
 class Utils {
@@ -124,9 +76,6 @@ class ImagetyperzAPI {
     private $_password = '';
     private $_affiliate_id;
     private $_timeout;
-    private $_captcha = null;
-    private $_recaptcha = null;
-    private $_error = '';
 
     function __construct($access_token, $affiliate_id = 0, $timeout = 120) {
         $this->_access_token = $access_token;
@@ -134,14 +83,13 @@ class ImagetyperzAPI {
         $this->_timeout = $timeout;
     }
 
-    // Set username and password - token should be used though
+    // Set username and password - DEPRECATED - token should be used
     function set_user_password($user, $password) {
         $this->_username = $user;
         $this->_password = $password;
     }
 
-    // Solve captcha
-    function solve_captcha($captcha_file, $optional_arguments) {
+    function submit_image($captcha_file, $optional_arguments) {
         $data = array();
         # if username is set, act accordingly
         if (!empty($this->_username)) {
@@ -177,17 +125,13 @@ class ImagetyperzAPI {
         // if file is sent as b64, uploading file ... is in response too, remove it
         $response = str_replace("Uploading file...", "", $response);
         if (strpos($response, 'ERROR:') !== false) {
-            $response_err = trim(explode('ERROR:', $response)[1]);
-            $this->_error = $response_err;
-            throw new Exception($response_err);
+            throw new Exception(trim(explode('ERROR:', $response)[1]));
         }
         // we have a good response here
         // save captcha to obj and return solved text
-        $this->_captcha = new Captcha($response);
-        return $this->_captcha->text();     // return captcha text
+        return explode('|', $response)[0];
     }
 
-    // Submit recaptcha
     function submit_recaptcha($d) {
         $data = array(
             "action" => "UPLOADCAPTCHA",
@@ -224,63 +168,201 @@ class ImagetyperzAPI {
         if (isset($d['type'])) $data["recaptchatype"] = (string)$d['type'];
         if (isset($d['v3_action'])) $data["captchaaction"] = $d['v3_action'];
         if (isset($d['v3_min_score'])) $data["score"] = (string)$d['v3_min_score'];
-        if (isset($d['data-s'])) $data["data-s"] = (string)$d['data-s']
+        if (isset($d['data-s'])) $data["data-s"] = (string)$d['data-s'];
         $response = Utils::post($url, $data, USER_AGENT, $this->_timeout);
         if (strpos($response, 'ERROR:') !== false) {
-            $response_err = trim(explode('ERROR:', $response)[1]);
-            $this->_error = $response_err;
-            throw new Exception($response_err);
+            throw new Exception(trim(explode('ERROR:', $response)[1]));
         }
         // we have a good response here
         // save captcha to obj and return solved text
-        $this->_recaptcha = new Recaptcha($response);
-        return $this->_recaptcha->captcha_id();     // return captcha text
+        return $response;
     }
 
-    // Get recaptcha response using captcha ID
-    function retrieve_recaptcha($captcha_id) {
+    function submit_geetest($d) {
+        $data = array(
+            "action" => "UPLOADCAPTCHA",
+            "domain" => $d['domain'],
+            "challenge" => $d['challenge'],
+            "gt" => $d['gt']
+        );
+
+        if (!empty($this->_username)) {
+            $data["username"] = $this->_username;
+            $data["password"] = $this->_password;
+            $url = GEETEST_SUBMIT_ENDPOINT;
+        } else {
+            $data['token'] = $this->_access_token;
+            $url = GEETEST_SUBMIT_ENDPOINT_TOKEN;
+        }
+
+        // affiliate
+        if (!empty($this->_affiliate_id)) {
+            $data['affiliateid'] = $this->_affiliate_id;
+        }
+
+        // check for proxy
+        if (isset($d['proxy'])) {
+            // we have a good proxy here (at least both params supplied)
+            // set it to the data/params
+            $data["proxy"] = $d['proxy'];
+        }
+        // check for user agent
+        if (isset($d['user_agent'])) $data["useragent"] = $d['user_agent'];
+        $q = http_build_query($d);
+        $url = "$url?$q";
+        $response = Utils::post($url, $data, USER_AGENT, $this->_timeout);
+        if (strpos($response, 'ERROR:') !== false) {
+            throw new Exception(trim(explode('ERROR:', $response)[1]));
+        }
+        // we have a good response here
+        // save captcha to obj and return solved text
+        return $response;
+    }
+
+    function submit_capy($d) {
+        $data = array(
+            "action" => "UPLOADCAPTCHA",
+            "pageurl" => $d['page_url'],
+            "sitekey" => $d['sitekey'],
+            "captchatype" => "12"
+        );
+
+        if (!empty($this->_username)) {
+            $data["username"] = $this->_username;
+            $data["password"] = $this->_password;
+        } else {
+            $data['token'] = $this->_access_token;
+        }
+
+        // affiliate
+        if (!empty($this->_affiliate_id)) {
+            $data['affiliateid'] = $this->_affiliate_id;
+        }
+
+        // check for proxy
+        if (isset($d['proxy'])) {
+            // we have a good proxy here (at least both params supplied)
+            // set it to the data/params
+            $data["proxy"] = $d['proxy'];
+        }
+        // check for user agent
+        if (isset($d['user_agent'])) $data["useragent"] = $d['user_agent'];
+        $response = Utils::post(CAPY_ENDPOINT, $data, USER_AGENT, $this->_timeout);
+        if (strpos($response, 'ERROR:') !== false) {
+            throw new Exception(trim(explode('ERROR:', $response)[1]));
+        }
+        return json_decode($response, true)[0]['CaptchaId'];
+    }
+
+    function submit_hcaptcha($d) {
+        $data = array(
+            "action" => "UPLOADCAPTCHA",
+            "pageurl" => $d['page_url'],
+            "sitekey" => $d['sitekey'],
+            "captchatype" => "11"
+        );
+
+        if (!empty($this->_username)) {
+            $data["username"] = $this->_username;
+            $data["password"] = $this->_password;
+        } else {
+            $data['token'] = $this->_access_token;
+        }
+
+        // affiliate
+        if (!empty($this->_affiliate_id)) {
+            $data['affiliateid'] = $this->_affiliate_id;
+        }
+
+        // check for proxy
+        if (isset($d['proxy'])) {
+            // we have a good proxy here (at least both params supplied)
+            // set it to the data/params
+            $data["proxy"] = $d['proxy'];
+        }
+        // check for user agent
+        if (isset($d['user_agent'])) $data["useragent"] = $d['user_agent'];
+        $response = Utils::post(HCAPTCHA_ENDPOINT, $data, USER_AGENT, $this->_timeout);
+        if (strpos($response, 'ERROR:') !== false) {
+            throw new Exception(trim(explode('ERROR:', $response)[1]));
+        }
+        return json_decode($response, true)[0]['CaptchaId'];
+    }
+
+    function submit_tiktok($d) {
+        $data = array(
+            "action" => "UPLOADCAPTCHA",
+            "pageurl" => $d['page_url'],
+            "cookie_input" => $d['cookie_input'],
+            "captchatype" => "10"
+        );
+
+        if (!empty($this->_username)) {
+            $data["username"] = $this->_username;
+            $data["password"] = $this->_password;
+        } else {
+            $data['token'] = $this->_access_token;
+        }
+
+        // affiliate
+        if (!empty($this->_affiliate_id)) {
+            $data['affiliateid'] = $this->_affiliate_id;
+        }
+
+        // check for proxy
+        if (isset($d['proxy'])) {
+            // we have a good proxy here (at least both params supplied)
+            // set it to the data/params
+            $data["proxy"] = $d['proxy'];
+        }
+        // check for user agent
+        if (isset($d['user_agent'])) $data["useragent"] = $d['user_agent'];
+        $response = Utils::post(TIKTOK_ENDPOINT, $data, USER_AGENT, $this->_timeout);
+        if (strpos($response, 'ERROR:') !== false) {
+            throw new Exception(trim(explode('ERROR:', $response)[1]));
+        }
+        return json_decode($response, true)[0]['CaptchaId'];
+    }
+
+    function retrieve_response($captcha_id) {
         $data = array(
             "action" => "GETTEXT",
-            "username" => $this->_username,
-            "password" => $this->_password,
             "captchaid" => $captcha_id,
         );
 
         if (!empty($this->_username)) {
             $data["username"] = $this->_username;
             $data["password"] = $this->_password;
-            $url = RECAPTCHA_RETRIEVE_ENDPOINT;
         } else {
             $data['token'] = $this->_access_token;
-            $url = RECAPTCHA_RETRIEVE_ENDPOINT_TOKEN;
         }
 
-        $response = Utils::post($url, $data, USER_AGENT, $this->_timeout);
+        // affiliate
+        if (!empty($this->_affiliate_id)) {
+            $data['affiliateid'] = $this->_affiliate_id;
+        }
+
+        // check for proxy
+        if (isset($d['proxy'])) {
+            // we have a good proxy here (at least both params supplied)
+            // set it to the data/params
+            $data["proxy"] = $d['proxy'];
+        }
+        // check for user agent
+        if (isset($d['user_agent'])) $data["useragent"] = $d['user_agent'];
+
+        // check for other v3 params
+        $response = Utils::post(RETRIEVE_JSON_ENDPOINT, $data, USER_AGENT, $this->_timeout);
         if (strpos($response, 'ERROR:') !== false) {
-            $response_err = trim(explode('ERROR:', $response)[1]);
-            // save it to obj error only if it's not, NOT_DECODED
-            if (strpos($response_err, 'NOT_DECODED') !== false) {
-                $this->_error = $response_err;
-            }
-            throw new Exception($response_err);
+            $x = trim(explode('ERROR:', $response)[1]);
+            $y = explode('"', $x)[0];
+            throw new Exception($y);
         }
-
-        // set them to obj
-        $this->_recaptcha = new Recaptcha($captcha_id);  // remake obj (in case submit wasn't used)
-        $this->_recaptcha->set_response($response);      // set recaptcha response
-        return $this->_recaptcha->response();            // return response
-    }
-
-    // Check if captcha is still in progress
-    function in_progress($captcha_id) {
-        try {
-            $this->retrieve_recaptcha($captcha_id);     // retrieve captcha
-            return FALSE;                               // not in progress anymore
-        } catch (Exception $ex) {
-            if (strpos($ex->getMessage(), 'NOT_DECODED') !== false) {
-                return TRUE;                            // still "decoding" it
-            }
-        }
+        // we have a good response here
+        // save captcha to obj and return solved text
+        $js = json_decode($response, true)[0];
+        if ($js['Status'] === 'Pending') return null;
+        return $js;
     }
 
     // Get account balance
@@ -301,9 +383,7 @@ class ImagetyperzAPI {
 
         $response = Utils::post($url, $data, USER_AGENT, $this->_timeout);
         if (strpos($response, 'ERROR:') !== false) {
-            $response_err = trim(explode('ERROR:', $response)[1]);
-            $this->_error = $response_err;
-            throw new Exception($response_err);
+            throw new Exception(trim(explode('ERROR:', $response)[1]));
         }
 
         return '$' . $response;     // return response
@@ -331,96 +411,11 @@ class ImagetyperzAPI {
         $response = Utils::post($url, $data, USER_AGENT, $this->_timeout);
         // parse response
         if (strpos($response, 'ERROR:') !== false) {
-            $response_err = trim(explode('ERROR:', $response)[1]);
-            $this->_error = $response_err;
-            throw new Exception($response_err);
+            throw new Exception(trim(explode('ERROR:', $response)[1]));
         }
 
         return $response;     // return response
     }
-    
-	// Tells if proxy was used or not
-    function was_proxy_used($captcha_id) {
-		// set data array
-		$data = array(
-			"action" => "GETTEXT",
-			"captchaid" => $captcha_id,
-		);
-
-		if (!empty($this->_username)) {
-			$data["username"] = $this->_username;
-			$data["password"] = $this->_password;
-			$url = PROXY_CHECK_ENDPOINT;
-		} else {
-			$data['token'] = $this->_access_token;
-			$url = PROXY_CHECK_ENDPOINT_TOKEN;
-		}
-
-		// do request
-		$response = Utils::post($url, $data, USER_AGENT, $this->_timeout);
-		$js = json_decode($response, TRUE)[0];		// decode JSON
-		
-		if(array_key_exists('Error', $js)){
-			$response_err = $js['Error'];
-			$this->_error = $response_err;
-            throw new Exception($response_err);
-		}
-		else if(empty($js['Result'])){
-			$response_err = 'captcha not completed yet';
-			$this->_error = $response_err;
-            throw new Exception($response_err);
-		}
-		else if(empty($js['Proxy_client'])){
-			return 'no, reason: proxy was no sent with recaptcha submission request';
-		}
-		else if(!empty($js['Proxy_reason'])){
-			return "no, reason: " . $js['Proxy_reason'];
-		}
-		else if(sizeof(explode(':', $js['Proxy_client'])) >= 2 && $js['Proxy_client'] === $js['Proxy_worker'])
-		{
-			return "yes, used proxy: " . $js['Proxy_worker'];
-		}
-		
-		return 'no, reason: unknown';
-    }
-
-    // Get last captcha text
-    function captcha_text() {
-        if (is_null($this->_captcha)) {
-            return "";
-        }
-        return $this->_captcha->text();
-    }
-
-    // Get last captcha ID
-    function captcha_id() {
-        if (is_null($this->_captcha)) {
-            return "";
-        }
-        return $this->_captcha->captcha_id();
-    }
-
-    // Get last recaptcha ID
-    function recaptcha_id() {
-        if (is_null($this->_recaptcha)) {
-            return "";
-        }
-        return $this->_recaptcha->captcha_id();
-    }
-
-    // Get last recaptcha response
-    function recaptcha_response() {
-        if (is_null($this->_recaptcha)) {
-            return "";
-        }
-        return $this->_recaptcha->response();
-    }
-
-    // Return last error
-    function error() {
-        return $this->_error;
-    }
-
 }
 
 ?>

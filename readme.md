@@ -4,120 +4,187 @@ imagetyperz-api-php - Imagetyperz API wrapper
 imagetyperzapi is a super easy to use bypass captcha API wrapper for imagetyperz.com captcha service
 
 ## Installation
-
     composer require imagetyperzapi/imagetyperzapi
-
+    
 or
     
     git clone https://github.com/imagetyperz-api/imagetyperz-api-php
 
-## How to use?
+## Usage
 
 Simply require the module, set the auth details and start using the captcha service:
 
 ``` php
 require('lib/imagetyperzapi.php');      // load API library
 ```
+Set access_token for authentication:
 
-Set access_token or username and password (legacy) for authentication
 ``` php
 // get access token from: http://www.imagetyperz.com/Forms/ClientHome.aspx
 $access_token = 'your_access_token_here';
-$i = new ImagetyperzAPI($access_token);   
+$i = new ImagetyperzAPI($access_token);
 ```
-
-Legacy way, will get deprecated at some point
-
-``` php
-$i->set_user_password('your_user', 'your_password');  
-```
-
-Once you've set your authentication details, you can start using the API
+Once you've set your authentication details, you can start using the API.
 
 **Get balance**
 
 ``` php
 $balance = $i->account_balance();
+echo $balance;
 ```
 
-**Submit image captcha**
+## Solving
+For solving a captcha, it's a two step process:
+- **submit captcha** details - returns an ID
+- use ID to check it's progress - and **get solution** when solved.
+
+Each captcha type has it's own submission method.
+
+For getting the response, same method is used for all types.
+
+
+### Image captcha
 
 ``` php
-// check example for optional_parameters array
-$captcha_text = $i->solve_captcha('captcha.jpg', optional_parameters);
+$optional_parameters = array();
+// $optional_parameters['iscase'] = 'true';            // case sensitive captcha
+// $optional_parameters['ismath'] = 'true';            // instructs worker that a math captcha has to be solved
+// $optional_parameters['isphrase'] = 'true';          // text contains at least one space (phrase)
+// $optional_parameters['alphanumeric'] = '1';         // 1 - digits only, 2 - letters only
+// $optional_parameters['minlength'] = '3';            // captcha text length (minimum)
+// $optional_parameters['maxlength'] = '8';            // captcha text length (maximum)
+captcha_id = $i->submit_image(image_path = 'captcha.jpg', $optional_parameters);
 ```
+ID is used to retrieve solution when solved.
 
-**Works with URL instead of image file but only if authenticated with token**
-``` php
-$captcha_text = $i->solve_captcha('http://scurt.pro/captcha.jpg');
-```
-**Submit recaptcha details**
+**Observation**
+It works with URL instead of image file too.
+
+### reCAPTCHA
 
 For recaptcha submission there are two things that are required.
-- page_url
-- site_key
+- page_url (**required**)
+- site_key (**required**)
 - type - can be one of this 3 values: `1` - normal, `2` - invisible, `3` - v3 (it's optional, defaults to `1`)
 - v3_min_score - minimum score to target for v3 recaptcha `- optional`
 - v3_action - action parameter to use for v3 recaptcha `- optional`
 - proxy - proxy to use when solving recaptcha, eg. `12.34.56.78:1234` or `12.34.56.78:1234:user:password` `- optional`
 - user_agent - useragent to use when solve recaptcha `- optional` 
+- data-s - extra parameter used in solving recaptcha `- optional`
+
 ``` php
+d = {}
 $params = array();
 $params['page_url'] = 'page_url_here';
 $params['sitekey'] = 'sitekey_here';
-$params['type'] = 3;    // optional
-$params['v3_min_score'] = 0.3;          // min score to target when solving v3 - optional
-$params['v3_action'] = 'homepage';      // action to use when solving v3 - optional
-$params['proxy'] = '126.45.34.53:123';  // - optional
-$params['user_agent'] = 'Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101 Firefox/60.0'; // optional
-$params['data-s'] = 'recaptcha data-s value'; // - optional
+// $params['type'] = 3;    // optional
+// $params['v3_min_score'] = 0.3;          // min score to target when solving v3 - optional
+// $params['v3_action'] = 'homepage';      // action to use when solving v3 - optional
+// $params['proxy'] = '126.45.34.53:123';  // - optional
+// $params['user_agent'] = 'Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101 Firefox/60.0'; // optional
+// $params['data-s'] = 'recaptcha data-s value'; // - optional
 $captcha_id = $i->submit_recaptcha($params);
 ```
-This method returns a captchaID. This ID will be used next, to retrieve the g-response, once workers have 
-completed the captcha. This takes somewhere between 10-80 seconds.
+ID will be used to retrieve the g-response, once workers have 
+completed the captcha. This takes somewhere between 10-80 seconds. 
 
-**Retrieve captcha response**
+Check **Retrieve response** 
 
-Once you have the captchaID, you check for it's progress, and later on retrieve the gresponse.
+### GeeTest
 
-The ***in_progress($captcha_id)*** method will tell you if captcha is still being decoded by workers.
-Once it's no longer in progress, you can retrieve the gresponse with ***retrieve_recaptcha($captcha_id)***  
+GeeTest is a captcha that requires 3 parameters to be solved:
+- domain
+- challenge
+- gt
 
-```php
-while ($i->in_progress($captcha_id))
-    sleep(10);
-// completed at this point
-$recaptcha_response = $i->retrieve_recaptcha($captcha_id);
-```
+The response of this captcha after completion are 3 codes:
+- challenge
+- validate
+- seccode
 
-## Capy & hCaptcha
+**Important**
+This captcha requires a **unique** challenge to be sent along with each captcha.
 
-This are two different captcha types, but both are similar to reCAPTCHA. They require a `pageurl` and `sitekey` for solving. hCaptcha is the newest one.
-
-### IMPORTANT
-For this two captcha types, the reCAPTCHA methods are used (explained above), except that there's one small difference.
-
-The `pageurl` parameter should have at the end of it `--capy` added for Capy captcha and `--hcaptcha` for the hCaptcha. This instructs our system it's a capy or hCaptcha. It will be changed in the future, to have it's own endpoints.
-
-For example, if you were to have the `pageurl` = `https://mysite.com` you would send it as `https://mysite.com--capy` if it's capy or `https://mysite.com--hcaptcha` for hCaptcha. Both require a sitekey too, which is sent as reCAPTCHA sitekey, and response is received as reCAPTCHA response, once again using the reCAPTCHA method.
-
-#### Example
 ```php
 $params = array();
-$params['page_url'] = 'domain.com--capy';		// add --capy or --hcaptcha at the end, to submit capy or hCaptcha
-$params['sitekey'] = 'sitekey_here';
+$params['domain'] = 'your_domain';
+$params['challenge'] = 'challenge_here';
+$params['gt'] = 'gt_here';
+// $params['proxy'] = '126.45.34.53:123';  // - optional
+// $params['user_agent'] = 'Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101 Firefox/60.0'; // optional
+$captcha_id = $i->submit_geetest($params);
+```
 
-// submit it
+Optionally, you can send proxy and user_agent along.
+
+### hCaptcha
+
+Requires page_url and sitekey
+
+```php
+$params = array();
+$params['page_url'] = 'https://your-site.com';
+$params['sitekey'] = '1c7062c7-cae6-4e12-96fb-303fbec7fe4f';
+//$params['proxy'] = '126.45.34.53:123';  // - optional
+//$params['user_agent'] = 'Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101 Firefox/60.0'; // - optional
+$captcha_id = $i->submit_hcaptcha($params);
+```
+
+### Capy
+
+Requires page_url and sitekey
+
+```php
+$params = array();
+$params['page_url'] = 'https://your-site.com';
+$params['sitekey'] = 'Fme6hZLjuCRMMC3uh15F52D3uNms5c';
+//$params['proxy'] = '126.45.34.53:123';  // - optional
+//$params['user_agent'] = 'Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101 Firefox/60.0'; // - optional
+$captcha_id = $i->submit_capy($params);
+```
+
+### Tiktok
+
+Requires page_url cookie_input
+
+```php
+$params = array();
+$params['page_url'] = 'https://tiktok.com';	
+$params['cookie_input'] = 's_v_web_id:verify_kd6243o_fd449FX_FDGG_1x8E_8NiQ_fgrg9FEIJ3f;tt_webid:612465623570154;tt_webid_v2:7679206562717014313;SLARDAR_WEB_ID:d0314f-ce16-5e16-a066-71f19df1545f;';
+//$params['proxy'] = '126.45.34.53:123';  // - optional
+//$params['user_agent'] = 'Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101 Firefox/60.0'; // - optional
+$captcha_id = $i->submit_tiktok($params);
+```
+
+## Retrieve response
+
+Regardless of the captcha type (and method) used in submission of the captcha, this method is used
+right after to check for it's solving status and also get the response once solved.
+
+It requires one parameter, that's the **captcha ID** gathered from first step.
+
+```php
 $captcha_id = $i->submit_recaptcha($params);
-echo 'Waiting for Capy to be completed ...';
-
-// check every 10 seconds if capy was solved
-while ($i->in_progress($captcha_id))
+echo "Waiting for captcha to be solved...\n";
+$response = null;
+while($response === null) {
     sleep(10);
-
-// completed at this point
-$solution = $i->retrieve_recaptcha($captcha_id);
-echo "Capy response: $solution";
+    // works any type of captcha, here showing with recaptcha submission
+    $response = $i->retrieve_response($captcha_id);
+}
+echo "Response: ";
+var_dump($response);
+```
+The response is a JSON object that looks like this:
+```json
+{
+  "CaptchaId": 176707908, 
+  "Response": "03AGdBq24PBCbwiDRaS_MJ7Z...mYXMPiDwWUyEOsYpo97CZ3tVmWzrB", 
+  "Cookie_OutPut": "", 
+  "Proxy_reason": "", 
+  "Recaptcha score": 0.0, 
+  "Status": "Solved"
+}
 ```
 
 ## Other methods/variables
@@ -126,23 +193,14 @@ echo "Capy response: $solution";
 
 The constructor accepts a 2nd parameter, as the affiliate id. 
 ``` php
-$i = new ImagetypersAPI($access_token, 123);
+$i = new ImagetypersAPI($access_token, 123);      // use affiliateid
 ```
 
 **Requests timeout**
 
 As a 3rd parameter in the constructor, you can specify a timeout for the requests (in seconds)
 ``` php
-$i = new ImagetypersAPI($access_token, 123, 60);
-```
-
-**Get details of proxy for recaptcha**
-
-In case you submitted the recaptcha with proxy, you can check the status of the proxy, if it was used or not,
-and if not, what the reason was with the following:
-
-``` php
-echo $i->was_proxy_used($captcha_id);
+$i = new ImagetypersAPI($access_token, 123, 60);      // use affiliateid
 ```
 
 **Set captcha bad**
@@ -151,11 +209,11 @@ When a captcha was solved wrong by our workers, you can notify the server with i
 so we know something went wrong.
 
 ``` php
-$i->set_captcha_bad($captcha_id); 
+$i->set_captcha_bad($captcha_id);
 ```
 
 ## Examples
-Check example.php
+Check root folder for examples, for each type of captcha.
 
 ## License
 API library is licensed under the MIT License
@@ -166,5 +224,5 @@ More details about the server-side API can be found [here](http://imagetyperz.co
 
 <sup><sub>captcha, bypasscaptcha, decaptcher, decaptcha, 2captcha, deathbycaptcha, anticaptcha, 
 bypassrecaptchav2, bypassnocaptcharecaptcha, bypassinvisiblerecaptcha, captchaservicesforrecaptchav2, 
-recaptchav2captchasolver, googlerecaptchasolver, recaptchasolverpython, recaptchabypassscript</sup></sub>
+recaptchav2captchasolver, googlerecaptchasolver, recaptchasolverphp, recaptchabypassscript</sup></sub>
 
