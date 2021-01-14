@@ -15,8 +15,17 @@ function test_api() {
     $params = array();
     $params['page_url'] = 'https://your-site.com';
     $params['sitekey'] = '7LrGJmcUABBAALFtIb_FxC0LXm_GwOLyJAfbbUCL';
-    // type: 1 - normal recaptcha, 2 - invisible recaptcha, 3 - v3 recaptcha, default: 1
-    //$params['type'] = 3;    // optional
+
+    // reCAPTCHA type(s) - optional, defaults to 1
+    // ---------------------------------------------
+    // 1 - v2
+    // 2 - invisible
+    // 3 - v3
+    // 4 - enterprise v2
+    // 5 - enterprise v3
+    //
+    //$params['type'] = 1;    // optional
+    //
     //$params['v3_min_score'] = 0.3;          // min score to target when solving v3 - optional
     //$params['v3_action'] = 'homepage';      // action to use when solving v3 - optional
     // proxy to use when solving recaptcha, works with auth as well 126.45.34.53:123:user:password
@@ -24,6 +33,7 @@ function test_api() {
     // user agent to use when resolving recaptcha - optional
     //$params['user_agent'] = 'Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101 Firefox/60.0'; // - optional
     //$params['data-s'] = 'recaptcha data-s value'; // - optional
+    //$params['cookie_input'] = 'a=b;c=d'; // - optional
     $captcha_id = $i->submit_recaptcha($params);
     echo "Waiting for captcha to be solved...\n";
     $response = null;

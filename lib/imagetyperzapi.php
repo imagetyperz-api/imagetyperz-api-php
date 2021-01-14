@@ -2,6 +2,7 @@
 
 define('CAPTCHA_ENDPOINT', 'http://captchatypers.com/Forms/UploadFileAndGetTextNEW.ashx');
 define('RECAPTCHA_SUBMIT_ENDPOINT', 'http://captchatypers.com/captchaapi/UploadRecaptchaV1.ashx');
+define('RECAPTCHA_ENTERPRISE_SUBMIT_ENDPOINT', 'http://captchatypers.com/captchaapi/UploadRecaptchaEnt.ashx');
 define('RECAPTCHA_RETRIEVE_ENDPOINT', 'http://captchatypers.com/captchaapi/GetRecaptchaText.ashx');
 define('BALANCE_ENDPOINT', 'http://captchatypers.com/Forms/RequestBalance.ashx');
 define('BAD_IMAGE_ENDPOINT', 'http://captchatypers.com/Forms/SetBadImage.ashx');
@@ -162,13 +163,21 @@ class ImagetyperzAPI {
         // check for user agent
         if (isset($d['user_agent'])) $data["useragent"] = $d['user_agent'];
 
-        // v3
+        // type / enterprise
         $data['recaptchatype'] = '0';
-        // check for other v3 params
-        if (isset($d['type'])) $data["recaptchatype"] = (string)$d['type'];
+        if (isset($d['type'])) {
+            $data["recaptchatype"] = (string)$d['type'];
+            if ((string)$d['type'] === '4' || (string)$d['type'] === '5') {
+                $url = RECAPTCHA_ENTERPRISE_SUBMIT_ENDPOINT;
+            }
+            if ((string)$d['type'] === '5') {
+                $data['enterprise_type'] = 'v3';
+            }
+        }
         if (isset($d['v3_action'])) $data["captchaaction"] = $d['v3_action'];
         if (isset($d['v3_min_score'])) $data["score"] = (string)$d['v3_min_score'];
         if (isset($d['data-s'])) $data["data-s"] = (string)$d['data-s'];
+        if (isset($d['cookie_input'])) $data["cookie_input"] = (string)$d['cookie_input'];
         $response = Utils::post($url, $data, USER_AGENT, $this->_timeout);
         if (strpos($response, 'ERROR:') !== false) {
             throw new Exception(trim(explode('ERROR:', $response)[1]));
