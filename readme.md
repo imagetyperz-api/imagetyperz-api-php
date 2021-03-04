@@ -163,6 +163,21 @@ $params['cookie_input'] = 's_v_web_id:verify_kd6243o_fd449FX_FDGG_1x8E_8NiQ_fgrg
 $captcha_id = $i->submit_tiktok($params);
 ```
 
+### FunCaptcha
+
+Requires page_url, sitekey and s_url
+
+```php
+$params = array();
+$params['page_url'] = 'https://your-site.com';
+$params['sitekey'] = '11111111-1111-1111-1111-111111111111';
+$params['s_url'] = 'https://api.arkoselabs.com';
+$params['data'] = '{"a":"b"}';
+//$params['proxy'] = '126.45.34.53:123';  // - optional
+//$params['user_agent'] = 'Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101 Firefox/60.0'; // - optional
+$captcha_id = $i->submit_funcaptcha($params);
+```
+
 ## Retrieve response
 
 Regardless of the captcha type (and method) used in submission of the captcha, this method is used

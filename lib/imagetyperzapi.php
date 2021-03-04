@@ -13,6 +13,7 @@ define('RETRIEVE_JSON_ENDPOINT', 'http://captchatypers.com/captchaapi/GetCaptcha
 define('CAPY_ENDPOINT', 'http://captchatypers.com/captchaapi/UploadCapyCaptchaUser.ashx');
 define('HCAPTCHA_ENDPOINT', 'http://captchatypers.com/captchaapi/UploadHCaptchaUser.ashx');
 define('TIKTOK_ENDPOINT', 'http://captchatypers.com/captchaapi/UploadTikTokCaptchaUser.ashx');
+define('FUNCAPTCHA_ENDPOINT', 'http://captchatypers.com/captchaapi/UploadFunCaptcha.ashx');
 
 define('CAPTCHA_ENDPOINT_CONTENT_TOKEN', 'http://captchatypers.com/Forms/UploadFileAndGetTextNEWToken.ashx');
 define('CAPTCHA_ENDPOINT_URL_TOKEN', 'http://captchatypers.com/Forms/FileUploadAndGetTextCaptchaURLToken.ashx');
@@ -327,6 +328,50 @@ class ImagetyperzAPI {
         // check for user agent
         if (isset($d['user_agent'])) $data["useragent"] = $d['user_agent'];
         $response = Utils::post(TIKTOK_ENDPOINT, $data, USER_AGENT, $this->_timeout);
+        if (strpos($response, 'ERROR:') !== false) {
+            throw new Exception(trim(explode('ERROR:', $response)[1]));
+        }
+        return json_decode($response, true)[0]['CaptchaId'];
+    }
+
+    function submit_funcaptcha($d) {
+        $data = array(
+            "action" => "UPLOADCAPTCHA",
+            "pageurl" => $d['page_url'],
+            "sitekey" => $d['sitekey'],
+            "captchatype" => "13"
+        );
+
+        if (!empty($this->_username)) {
+            $data["username"] = $this->_username;
+            $data["password"] = $this->_password;
+        } else {
+            $data['token'] = $this->_access_token;
+        }
+
+        // affiliate
+        if (!empty($this->_affiliate_id)) {
+            $data['affiliateid'] = $this->_affiliate_id;
+        }
+
+        // check for s_url
+        if (isset($d['s_url'])) {
+            $data['surl'] = $d['s_url'];
+        }
+        // extra data
+        if (isset($d['data'])) {
+            $data['data'] = $d['data'];
+        }
+
+        // check for proxy
+        if (isset($d['proxy'])) {
+            // we have a good proxy here (at least both params supplied)
+            // set it to the data/params
+            $data["proxy"] = $d['proxy'];
+        }
+        // check for user agent
+        if (isset($d['user_agent'])) $data["useragent"] = $d['user_agent'];
+        $response = Utils::post(FUNCAPTCHA_ENDPOINT, $data, USER_AGENT, $this->_timeout);
         if (strpos($response, 'ERROR:') !== false) {
             throw new Exception(trim(explode('ERROR:', $response)[1]));
         }
