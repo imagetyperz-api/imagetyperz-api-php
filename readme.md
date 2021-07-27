@@ -103,6 +103,7 @@ GeeTest is a captcha that requires 3 parameters to be solved:
 - domain
 - challenge
 - gt
+- api_server (optional)
 
 The response of this captcha after completion are 3 codes:
 - challenge
@@ -117,6 +118,7 @@ $params = array();
 $params['domain'] = 'your_domain';
 $params['challenge'] = 'challenge_here';
 $params['gt'] = 'gt_here';
+// $params['api_server'] = 'api.geetest.com';  // - geetest domain - optional
 // $params['proxy'] = '126.45.34.53:123';  // - optional
 // $params['user_agent'] = 'Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101 Firefox/60.0'; // optional
 $captcha_id = $i->submit_geetest($params);
