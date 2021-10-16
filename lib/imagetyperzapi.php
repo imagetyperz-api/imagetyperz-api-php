@@ -290,6 +290,10 @@ class ImagetyperzAPI {
             // set it to the data/params
             $data["proxy"] = $d['proxy'];
         }
+        // check for invisible
+        if (isset($d['invisible'])) {
+            $data["invisible"] = '1';
+        }
         // check for user agent
         if (isset($d['user_agent'])) $data["useragent"] = $d['user_agent'];
         $response = Utils::post(HCAPTCHA_ENDPOINT, $data, USER_AGENT, $this->_timeout);

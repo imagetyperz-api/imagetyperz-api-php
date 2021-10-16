@@ -15,6 +15,7 @@ function test_api() {
     $params = array();
     $params['page_url'] = 'https://your-site.com';
     $params['sitekey'] = '1c7062c7-cae6-4e12-96fb-303fbec7fe4f';
+    //$params['invisible'] = '1';  // if captcha is invisible - optional
     //$params['proxy'] = '126.45.34.53:123';  // - optional
     //$params['user_agent'] = 'Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101 Firefox/60.0'; // - optional
     $captcha_id = $i->submit_hcaptcha($params);
