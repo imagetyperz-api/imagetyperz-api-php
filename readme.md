@@ -5,7 +5,7 @@ imagetyperzapi is a super easy to use bypass captcha API wrapper for imagetyperz
 
 ## Installation
     composer require imagetyperzapi/imagetyperzapi
-    
+
 or
     
     git clone https://github.com/imagetyperz-api/imagetyperz-api-php
@@ -125,6 +125,31 @@ $captcha_id = $i->submit_geetest($params);
 ```
 
 Optionally, you can send proxy and user_agent along.
+
+### GeeTestV4
+
+GeeTesV4 is a new version of captcha from geetest that requires 2 parameters to be solved:
+
+- domain
+- geetestid (captchaID) - gather this from HTML source of page with captcha, inside the `<script>` tag you'll find a link that looks like this: https://i.imgur.com/XcZd47y.png
+
+The response of this captcha after completion are 5 parameters:
+
+- captcha_id
+- lot_number
+- pass_token
+- gen_time
+- captcha_output
+
+```php
+$params = array();
+$params['domain'] = 'https://example.com';
+$params['geetestid'] = '647f5ed2ed8acb4be36784e01556bb71';
+$captcha_id = $i->submit_geetest_v4($params);
+```
+
+Optionally, you can send proxy and user_agent along.
+
 
 ### hCaptcha
 

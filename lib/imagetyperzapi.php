@@ -8,6 +8,7 @@ define('BALANCE_ENDPOINT', 'http://captchatypers.com/Forms/RequestBalance.ashx')
 define('BAD_IMAGE_ENDPOINT', 'http://captchatypers.com/Forms/SetBadImage.ashx');
 define('PROXY_CHECK_ENDPOINT', 'http://captchatypers.com/captchaAPI/GetReCaptchaTextJSON.ashx');
 define('GEETEST_SUBMIT_ENDPOINT', 'http://captchatypers.com/captchaapi/UploadGeeTest.ashx');
+define('GEETEST_V4_SUBMIT_ENDPOINT', 'http://www.captchatypers.com/captchaapi/UploadGeeTestV4.ashx');
 define('GEETEST_SUBMIT_ENDPOINT_TOKEN', 'http://captchatypers.com/captchaapi/UploadGeeTestToken.ashx');
 define('RETRIEVE_JSON_ENDPOINT', 'http://captchatypers.com/captchaapi/GetCaptchaResponseJson.ashx');
 define('CAPY_ENDPOINT', 'http://captchatypers.com/captchaapi/UploadCapyCaptchaUser.ashx');
@@ -203,6 +204,46 @@ class ImagetyperzAPI {
         } else {
             $data['token'] = $this->_access_token;
             $url = GEETEST_SUBMIT_ENDPOINT_TOKEN;
+        }
+
+        // affiliate
+        if (!empty($this->_affiliate_id)) {
+            $data['affiliateid'] = $this->_affiliate_id;
+        }
+
+        // check for proxy
+        if (isset($d['proxy'])) {
+            // we have a good proxy here (at least both params supplied)
+            // set it to the data/params
+            $data["proxy"] = $d['proxy'];
+        }
+        // check for user agent
+        if (isset($d['user_agent'])) $data["useragent"] = $d['user_agent'];
+        $q = http_build_query($d);
+        $url = "$url?$q";
+        $response = Utils::post($url, $data, USER_AGENT, $this->_timeout);
+        if (strpos($response, 'ERROR:') !== false) {
+            throw new Exception(trim(explode('ERROR:', $response)[1]));
+        }
+        // we have a good response here
+        // save captcha to obj and return solved text
+        return $response;
+    }
+
+    function submit_geetest_v4($d) {
+        $data = array(
+            "action" => "UPLOADCAPTCHA",
+            "domain" => $d['domain'],
+            "geetestid" => $d['geetestid'],
+        );
+
+        $url = GEETEST_V4_SUBMIT_ENDPOINT;
+
+        if (!empty($this->_username)) {
+            $data["username"] = $this->_username;
+            $data["password"] = $this->_password;
+        } else {
+            $data['token'] = $this->_access_token;
         }
 
         // affiliate
