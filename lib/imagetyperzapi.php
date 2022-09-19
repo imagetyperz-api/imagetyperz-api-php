@@ -335,6 +335,10 @@ class ImagetyperzAPI {
         if (isset($d['invisible'])) {
             $data["invisible"] = '1';
         }
+        // check for enterprise
+        if (isset($d['HcaptchaEnterprise'])) {
+            $data["HcaptchaEnterprise"] = json_encode($d['HcaptchaEnterprise']);
+        }
         // check for user agent
         if (isset($d['user_agent'])) $data["useragent"] = $d['user_agent'];
         $response = Utils::post(HCAPTCHA_ENDPOINT, $data, USER_AGENT, $this->_timeout);
