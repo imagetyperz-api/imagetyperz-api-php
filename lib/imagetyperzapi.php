@@ -15,6 +15,7 @@ define('CAPY_ENDPOINT', 'http://captchatypers.com/captchaapi/UploadCapyCaptchaUs
 define('HCAPTCHA_ENDPOINT', 'http://captchatypers.com/captchaapi/UploadHCaptchaUser.ashx');
 define('TIKTOK_ENDPOINT', 'http://captchatypers.com/captchaapi/UploadTikTokCaptchaUser.ashx');
 define('FUNCAPTCHA_ENDPOINT', 'http://captchatypers.com/captchaapi/UploadFunCaptcha.ashx');
+define('TASK_ENDPOINT', 'http://captchatypers.com/captchaapi/UploadCaptchaTask.ashx');
 
 define('CAPTCHA_ENDPOINT_CONTENT_TOKEN', 'http://captchatypers.com/Forms/UploadFileAndGetTextNEWToken.ashx');
 define('CAPTCHA_ENDPOINT_URL_TOKEN', 'http://captchatypers.com/Forms/FileUploadAndGetTextCaptchaURLToken.ashx');
@@ -421,6 +422,35 @@ class ImagetyperzAPI {
         // check for user agent
         if (isset($d['user_agent'])) $data["useragent"] = $d['user_agent'];
         $response = Utils::post(FUNCAPTCHA_ENDPOINT, $data, USER_AGENT, $this->_timeout);
+        if (strpos($response, 'ERROR:') !== false) {
+            throw new Exception(trim(explode('ERROR:', $response)[1]));
+        }
+        return json_decode($response, true)[0]['CaptchaId'];
+    }
+
+    function submit_task($d) {
+        $d['captchatype'] = '16';
+        $d['action'] = 'UPLOADCAPTCHA';
+
+        if (!empty($this->_username)) {
+            $d["username"] = $this->_username;
+            $d["password"] = $this->_password;
+        } else {
+            $d['token'] = $this->_access_token;
+        }
+
+        // affiliate
+        if (!empty($this->_affiliate_id)) {
+            $d['affiliateid'] = $this->_affiliate_id;
+        }
+
+        if (isset($d['variables'])) {
+            $d['variables'] = json_encode($d['variables']);
+        }
+
+        // check for user agent
+        if (isset($d['user_agent'])) $d["useragent"] = $d['user_agent'];
+        $response = Utils::post(TASK_ENDPOINT, $d, USER_AGENT, $this->_timeout);
         if (strpos($response, 'ERROR:') !== false) {
             throw new Exception(trim(explode('ERROR:', $response)[1]));
         }
