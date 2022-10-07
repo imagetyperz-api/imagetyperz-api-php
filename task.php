@@ -24,6 +24,12 @@ function test_api() {
     //$params['user_agent'] = 'Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101 Firefox/60.0'; // - optional
     $captcha_id = $i->submit_task($params);
     echo "Waiting for captcha to be solved...\n";
+
+	// send pushVariable - update of variable while task is running (e.g 2FA code)
+	// $i->task_push_variables($Ccaptcha_id, array(
+    //         "twofactor_code" => "39283"
+    // ));
+    
     $response = null;
     while($response === null) {
         sleep(10);

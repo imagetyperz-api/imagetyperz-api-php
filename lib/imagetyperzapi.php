@@ -16,6 +16,7 @@ define('HCAPTCHA_ENDPOINT', 'http://captchatypers.com/captchaapi/UploadHCaptchaU
 define('TIKTOK_ENDPOINT', 'http://captchatypers.com/captchaapi/UploadTikTokCaptchaUser.ashx');
 define('FUNCAPTCHA_ENDPOINT', 'http://captchatypers.com/captchaapi/UploadFunCaptcha.ashx');
 define('TASK_ENDPOINT', 'http://captchatypers.com/captchaapi/UploadCaptchaTask.ashx');
+define('TASK_PUSH_ENDPOINT', 'http://captchatypers.com/CaptchaAPI/SaveCaptchaPush.ashx');
 
 define('CAPTCHA_ENDPOINT_CONTENT_TOKEN', 'http://captchatypers.com/Forms/UploadFileAndGetTextNEWToken.ashx');
 define('CAPTCHA_ENDPOINT_URL_TOKEN', 'http://captchatypers.com/Forms/FileUploadAndGetTextCaptchaURLToken.ashx');
@@ -520,6 +521,33 @@ class ImagetyperzAPI {
         }
 
         return '$' . $response;     // return response
+    }
+    
+     // Push variables for task
+    function task_push_variables($captcha_id, $variables) {
+        // set data array
+        $data = array(
+            "action" => "GETTEXT",
+            "captchaid" => $captcha_id,
+            "pushVariables" => json_encode($variables)
+        );
+
+        if (!empty($this->_username)) {
+            $data["username"] = $this->_username;
+            $data["password"] = $this->_password;
+        } else {
+            $data['token'] = $this->_access_token;
+        }
+        $url = TASK_PUSH_ENDPOINT;
+
+        // do request
+        $response = Utils::post($url, $data, USER_AGENT, $this->_timeout);
+        // parse response
+        if (strpos($response, 'ERROR:') !== false) {
+            throw new Exception(trim(explode('ERROR:', $response)[1]));
+        }
+
+        return $response;     // return response
     }
 
     // Set captcha bad
