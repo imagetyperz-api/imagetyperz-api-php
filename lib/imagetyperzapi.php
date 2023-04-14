@@ -15,6 +15,7 @@ define('CAPY_ENDPOINT', 'http://captchatypers.com/captchaapi/UploadCapyCaptchaUs
 define('HCAPTCHA_ENDPOINT', 'http://captchatypers.com/captchaapi/UploadHCaptchaUser.ashx');
 define('TIKTOK_ENDPOINT', 'http://captchatypers.com/captchaapi/UploadTikTokCaptchaUser.ashx');
 define('FUNCAPTCHA_ENDPOINT', 'http://captchatypers.com/captchaapi/UploadFunCaptcha.ashx');
+define('TURNSTILE_ENDPOINT', 'http://captchatypers.com/captchaapi/Uploadturnstile.ashx');
 define('TASK_ENDPOINT', 'http://captchatypers.com/captchaapi/UploadCaptchaTask.ashx');
 define('TASK_PUSH_ENDPOINT', 'http://captchatypers.com/CaptchaAPI/SaveCaptchaPush.ashx');
 
@@ -178,6 +179,7 @@ class ImagetyperzAPI {
                 $data['enterprise_type'] = 'v3';
             }
         }
+        if (isset($d['domain'])) $data["domain"] = $d['domain'];
         if (isset($d['v3_action'])) $data["captchaaction"] = $d['v3_action'];
         if (isset($d['v3_min_score'])) $data["score"] = (string)$d['v3_min_score'];
         if (isset($d['data-s'])) $data["data-s"] = (string)$d['data-s'];
@@ -343,6 +345,7 @@ class ImagetyperzAPI {
         }
         // check for user agent
         if (isset($d['user_agent'])) $data["useragent"] = $d['user_agent'];
+        if (isset($d['domain'])) $data["apiEndpoint"] = $d['domain'];
         $response = Utils::post(HCAPTCHA_ENDPOINT, $data, USER_AGENT, $this->_timeout);
         if (strpos($response, 'ERROR:') !== false) {
             throw new Exception(trim(explode('ERROR:', $response)[1]));
@@ -423,6 +426,43 @@ class ImagetyperzAPI {
         // check for user agent
         if (isset($d['user_agent'])) $data["useragent"] = $d['user_agent'];
         $response = Utils::post(FUNCAPTCHA_ENDPOINT, $data, USER_AGENT, $this->_timeout);
+        if (strpos($response, 'ERROR:') !== false) {
+            throw new Exception(trim(explode('ERROR:', $response)[1]));
+        }
+        return json_decode($response, true)[0]['CaptchaId'];
+    }
+
+    function submit_turnstile($d) {
+        $data = array(
+            "action" => "UPLOADCAPTCHA",
+            "pageurl" => $d['page_url'],
+            "sitekey" => $d['sitekey'],
+        );
+
+        if (!empty($this->_username)) {
+            $data["username"] = $this->_username;
+            $data["password"] = $this->_password;
+        } else {
+            $data['token'] = $this->_access_token;
+        }
+
+        // affiliate
+        if (!empty($this->_affiliate_id)) {
+            $data['affiliateid'] = $this->_affiliate_id;
+        }
+
+        // check for proxy
+        if (isset($d['proxy'])) {
+            // we have a good proxy here (at least both params supplied)
+            // set it to the data/params
+            $data["proxy"] = $d['proxy'];
+        }
+        // check for user agent
+        if (isset($d['user_agent'])) $data["useragent"] = $d['user_agent'];
+        if (isset($d['domain'])) $data["apiEndpoint"] = $d['domain'];
+        if (isset($d['action'])) $data["taction"] = $d['action'];
+        if (isset($d['cdata'])) $data["data"] = $d['cdata'];
+        $response = Utils::post(TURNSTILE_ENDPOINT, $data, USER_AGENT, $this->_timeout);
         if (strpos($response, 'ERROR:') !== false) {
             throw new Exception(trim(explode('ERROR:', $response)[1]));
         }

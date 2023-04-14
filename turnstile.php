@@ -14,21 +14,13 @@ function test_api() {
     echo "Solving captcha ...\n";
     $params = array();
     $params['page_url'] = 'https://your-site.com';
-    $params['sitekey'] = '1c7062c7-cae6-4e12-96fb-303fbec7fe4f';
-    //$params['invisible'] = '1';  // if captcha is invisible - optional
-
-    // domain used in loading of hcaptcha interface, default: hcaptcha.com - optional
-    // $params['domain'] = 'hcaptcha.com';
-
-    // extra parameters, useful for enterprise
-    // submit userAgent from requests too, when this is used
-    // $params['HcaptchaEnterprise'] = array(
-    //       "rqdata" => "take value from web requests"
-    //  );
-
+    $params['sitekey'] = '0x4ABBBBAABrfvW5vKbx11FZ';
+    //$params['domain'] = 'challenges.cloudflare.com';         // domain used in loading turnstile interface, default: challenges.cloudflare.com - optional
+    //$params['action'] = 'homepage';                          // used in loading turnstile interface, similar to reCAPTCHA - optional
+    //$params['cdata'] = 'your cdata';                         // used in loading turnstile interface - optional
     //$params['proxy'] = '126.45.34.53:123';  // - optional
     //$params['user_agent'] = 'Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101 Firefox/60.0'; // - optional
-    $captcha_id = $i->submit_hcaptcha($params);
+    $captcha_id = $i->submit_turnstile($params);
     echo "Waiting for captcha to be solved...\n";
     $response = null;
     while($response === null) {
@@ -44,7 +36,7 @@ function main() {
     try {
         test_api();             // test API
     } catch (Exception $ex) {
-        echo "Error occured: " . $ex->getMessage();     // print error
+        echo "Error occurred: " . $ex->getMessage();     // print error
     }
 }
 

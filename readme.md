@@ -71,6 +71,7 @@ For recaptcha submission there are two things that are required.
     - `3` - v3
     - `4` - enterprise v2
     - `5` - enterprise v3
+- domain - used in loading of reCAPTCHA interface, default: `www.google.com` (alternative: `recaptcha.net`) - `optional`
 - v3_min_score - minimum score to target for v3 recaptcha `- optional`
 - v3_action - action parameter to use for v3 recaptcha `- optional`
 - proxy - proxy to use when solving recaptcha, eg. `12.34.56.78:1234` or `12.34.56.78:1234:user:password` `- optional`
@@ -84,6 +85,7 @@ $params = array();
 $params['page_url'] = 'page_url_here';
 $params['sitekey'] = 'sitekey_here';
 // $params['type'] = 1;    // optional
+// $params['domain'] = 'www.google.com';  // used in loading reCAPTCHA interface, default: www.google.com (alternative: recaptcha.net) - optional
 // $params['v3_min_score'] = 0.3;          // min score to target when solving v3 - optional
 // $params['v3_action'] = 'homepage';      // action to use when solving v3 - optional
 // $params['proxy'] = '126.45.34.53:123';  // - optional
@@ -161,6 +163,9 @@ $params['page_url'] = 'https://your-site.com';
 $params['sitekey'] = '1c7062c7-cae6-4e12-96fb-303fbec7fe4f';
 //$params['invisible'] = '1';  // if captcha is invisible - optional
 
+// domain used in loading of hcaptcha interface, default: hcaptcha.com - optional
+// $params['domain'] = 'hcaptcha.com';
+    
 // extra parameters, useful for enterprise
 // submit userAgent from requests too, when this is used
 // $params['HcaptchaEnterprise'] = array(
@@ -211,6 +216,22 @@ $params['data'] = '{"a":"b"}';
 //$params['proxy'] = '126.45.34.53:123';  // - optional
 //$params['user_agent'] = 'Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101 Firefox/60.0'; // - optional
 $captcha_id = $i->submit_funcaptcha($params);
+```
+
+### Turnstile (Cloudflare)
+
+Requires page_url, sitekey
+
+```php
+$params = array();
+$params['page_url'] = 'https://your-site.com';
+$params['sitekey'] = '0x4ABBBBAABrfvW5vKbx11FZ';
+//$params['domain'] = 'challenges.cloudflare.com';         // domain used in loading turnstile interface, default: challenges.cloudflare.com - optional
+//$params['action'] = 'homepage';                          // used in loading turnstile interface, similar to reCAPTCHA - optional
+//$params['cdata'] = 'your cdata';                         // used in loading turnstile interface - optional
+//$params['proxy'] = '126.45.34.53:123';  // - optional
+//$params['user_agent'] = 'Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101 Firefox/60.0'; // - optional
+$captcha_id = $i->submit_turnstile($params);
 ```
 
 ### Task
@@ -269,8 +290,7 @@ The response is a JSON object that looks like this:
   "CaptchaId": 176707908, 
   "Response": "03AGdBq24PBCbwiDRaS_MJ7Z...mYXMPiDwWUyEOsYpo97CZ3tVmWzrB", 
   "Cookie_OutPut": "", 
-  "Proxy_reason": "", 
-  "Recaptcha score": 0.0, 
+  "Proxy_reason": "",
   "Status": "Solved"
 }
 ```
